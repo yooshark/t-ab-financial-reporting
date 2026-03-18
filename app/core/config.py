@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_FILE = Path.cwd() / ".env"
+ENV_FILE = Path.cwd().parent / ".env"
 
 
 class DatabaseSettings(BaseSettings):
