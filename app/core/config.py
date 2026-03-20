@@ -7,6 +7,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ENV_FILE = Path.cwd().parent / ".env"
 
 
+class SeedSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE,
+        env_prefix="SEED_",
+        extra="ignore",
+    )
+
+    ENABLED: bool = True
+    BATCH: int = 1000
+    USERS_COUNT: int = 120
+    TRANSACTIONS_COUNT: int = 12000
+
+
 class DatabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -54,6 +67,7 @@ class Settings(BaseSettings):
     ALLOW_ORIGIN_REGEX: str | None = r"https://(.*\.)?localhost\.com"
 
     db: DatabaseSettings = DatabaseSettings()
+    seed: SeedSettings = SeedSettings()
 
 
 @lru_cache()
