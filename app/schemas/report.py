@@ -35,7 +35,3 @@ class ReportResponse(BaseModel):
     amount_min: Decimal | None = None
     amount_max: Decimal | None = None
     daily: list[DailyData] | None = None
-
-
-class ReportResponse(BaseModel):
-    result: list[ReportResponse]
