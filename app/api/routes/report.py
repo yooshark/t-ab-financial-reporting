@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import get_report_service
@@ -14,5 +16,5 @@ router = APIRouter(
 async def get_report(
     params: ReportQueryParams = Depends(),
     service: ReportService = Depends(get_report_service),
-):
+) -> dict[str, Any]:
     return await service.get_report(params)
