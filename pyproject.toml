@@ -50,6 +50,7 @@ select = [
 ignore = [
     'B008', #  function-call-in-default-argument
 ]
+
 [tool.mypy]
 ignore_missing_imports = true
 explicit_package_bases = true
