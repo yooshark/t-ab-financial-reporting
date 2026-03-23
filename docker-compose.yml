@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile
     container_name: ab-financial-reporting-api
     env_file:
-      - .env
+      - .env.prod
     depends_on:
       postgres:
         condition: service_healthy
