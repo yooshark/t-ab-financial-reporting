@@ -3,7 +3,7 @@ from decimal import Decimal
 from functools import cached_property
 from typing import Callable, Any
 
-from sqlalchemy import select, func, ColumnElement
+from sqlalchemy import select, func, ColumnElement, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -32,13 +32,13 @@ class TransactionRepository(BaseRepository):
     async def set_params(self, report_params: ReportQueryParams) -> None:
         self.params = report_params
 
-    async def _stmt_metrics(self, methods: list[Callable]):
+    async def _stmt_metrics(self, methods: list[Callable]) -> Select[Any]:
         return select(*await self.build_columns(methods)).select_from(
             self.cte_filtered_transactions
         )
 
     @cached_property
-    def cte_filtered_transactions(self) -> Transaction:
+    def cte_filtered_transactions(self) -> type[Transaction]:
         stmt = select(Transaction).where(
             Transaction.payment_date >= self.params.start_date,
             Transaction.payment_date <= self.params.end_date,
@@ -109,19 +109,17 @@ class TransactionRepository(BaseRepository):
             .label("amount_total")
         )
 
-    async def column_total_daily_shift(self) -> ColumnElement[Decimal] | None:
+    async def column_total_daily_shift(self) -> ColumnElement[Decimal]:
         return self.daily_shift(func.sum).label("amount_total_daily_shift")
 
-    async def column_date(self) -> ColumnElement[date] | None:
+    async def column_date(self) -> ColumnElement[date]:
         return func.date(self.cte_filtered_transactions.payment_date).label("date")
 
     async def get_base_metrics(self) -> dict[str, Any]:
         stmt = await self._stmt_metrics(
             [self.column_total, self.column_avg, self.column_min, self.column_max]
         )
-        print(stmt)
-        print("----------------------------------------")
-        print(stmt.compile(compile_kwargs={"literal_binds": True}))
+
         result = await self._session.execute(stmt)
         return dict(result.mappings().all()[0])
 
@@ -135,11 +133,7 @@ class TransactionRepository(BaseRepository):
                 self.column_max_daily_shift,
             ]
         )
-        print(stmt)
-        print("----------------------------------------")
-        print(stmt.compile(compile_kwargs={"literal_binds": True}))
         date_c = func.date(self.cte_filtered_transactions.payment_date)
         stmt = stmt.group_by(date_c).order_by(date_c)
-
         result = await self._session.execute(stmt)
         return result.mappings().all()

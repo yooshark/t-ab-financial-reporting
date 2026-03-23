@@ -5,7 +5,6 @@ from typing import Any
 
 import uvicorn
 
-
 from app.core.config import settings
 from app.core.app_factory import app
 
