@@ -1,8 +1,7 @@
-import pytest
-from httpx import AsyncClient
-from unittest.mock import AsyncMock
+from httpx import AsyncClient, ASGITransport
 from decimal import Decimal
 
+from app.core.app_factory import app
 from app.core.dependencies import get_report_service
 
 
@@ -35,3 +34,22 @@ async def test_get_report_by_country_endpoint(api_client: AsyncClient, mock_repo
     assert data[0]["country"] == "USA"
 
     mock_report_service.get_report_by_countries.assert_called_once()
+
+
+async def test_get_report_invalid_params_negative(api_client: AsyncClient, mock_report_service):
+    response = await api_client.get("/api/report/", params={"start_date": "invalid-date"})
+    assert response.status_code == 422
+
+
+async def test_get_report_service_exception_negative(api_client: AsyncClient, mock_report_service, override_dependency):
+    from starlette.exceptions import HTTPException
+
+    mock_report_service.get_report.side_effect = HTTPException(status_code=400, detail="Custom service error")
+
+    with override_dependency(get_report_service, mock_report_service):
+        response = await api_client.get("/api/report/")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "error"
+    assert data["detail"] == "Custom service error"
