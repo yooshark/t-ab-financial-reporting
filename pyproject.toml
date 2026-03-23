@@ -39,18 +39,17 @@ output-format = "concise"
 
 [tool.ruff.lint]
 select = [
-    "E",    # pycodestyle – ошибки стиля
-    "F",    # pyflakes – ошибки синтаксиса
-    "B",    # flake8-bugbear – потенциальные баги
-    "SIM",  # flake8-simplify – упрощение кода
-    "UP",   # pyupgrade – современный синтаксис
-    "I",    # isort – сортировка импортов
+    "E", # pycodestyle – ошибки стиля
+    "F", # pyflakes – ошибки синтаксиса
+    "B", # flake8-bugbear – потенциальные баги
+    "SIM", # flake8-simplify – упрощение кода
+    "UP", # pyupgrade – современный синтаксис
+    "I", # isort – сортировка импортов
 ]
 
+ignore = [
+    'B008', #  function-call-in-default-argument
+]
 [tool.mypy]
 ignore_missing_imports = true
 explicit_package_bases = true
-
-[tool.ruff.lint.flake8-bugbear]
-# Allow default arguments like, e.g., `data: List[str] = fastapi.Query(None)`.
-extend-immutable-calls = ["Depends", "fastapi.Depends", "Query", "fastapi.Query"]
