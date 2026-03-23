@@ -9,3 +9,9 @@ class TransactionStatus(StrEnum):
 class TransactionType(StrEnum):
     PAYMENT = "payment"
     INVOICE = "invoice"
+
+
+class MetricSortByCountry(StrEnum):
+    TOTAL = "total"
+    COUNT = "count"
+    AVG = "avg"

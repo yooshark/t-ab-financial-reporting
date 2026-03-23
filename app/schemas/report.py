@@ -6,9 +6,7 @@ from pydantic import BaseModel
 
 from app.core.enums import TransactionStatus, TransactionType
 
-ReportTransactionStatus = Literal[
-    "all", TransactionStatus.SUCCESSFUL, TransactionStatus.FAILED
-]
+ReportTransactionStatus = Literal["all", TransactionStatus.SUCCESSFUL, TransactionStatus.FAILED]
 ReportTransactionType = Literal["all", TransactionType.PAYMENT, TransactionType.INVOICE]
 
 
@@ -37,3 +35,10 @@ class ReportResponse(BaseModel):
     amount_min: Decimal | None = None
     amount_max: Decimal | None = None
     daily: list[DailyData] | None = None
+
+
+class ReportByCountryItem(BaseModel):
+    country: str
+    count: int
+    total: Decimal
+    avg: Decimal | None = None
