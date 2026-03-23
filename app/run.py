@@ -1,12 +1,11 @@
 import asyncio
 import contextlib
-
 from typing import Any
 
 import uvicorn
 
-from app.core.config import settings
 from app.core.app_factory import app
+from app.core.config import settings
 
 
 async def main() -> None:

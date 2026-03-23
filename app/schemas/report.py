@@ -1,7 +1,9 @@
 from datetime import date, timedelta
-from typing import Literal
-from pydantic import BaseModel
 from decimal import Decimal
+from typing import Literal
+
+from pydantic import BaseModel
+
 from app.core.enums import TransactionStatus, TransactionType
 
 ReportTransactionStatus = Literal[

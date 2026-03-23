@@ -25,3 +25,9 @@ repos:
         require_serial: true
         language: unsupported
         types: [ python ]
+
+      - id: mypy
+        name: mypy type checks
+        entry: uv run mypy
+        language: unsupported
+        types: [ python ]

@@ -1,9 +1,9 @@
 from datetime import date
 from decimal import Decimal
 from functools import cached_property
-from typing import Callable, Any
+from typing import Any, Callable
 
-from sqlalchemy import select, func, ColumnElement, Select
+from sqlalchemy import ColumnElement, RowMapping, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -123,7 +123,7 @@ class TransactionRepository(BaseRepository):
         result = await self._session.execute(stmt)
         return dict(result.mappings().all()[0])
 
-    async def get_daily_metrics(self) -> list[dict[str, Any]]:
+    async def get_daily_metrics(self) -> list[RowMapping]:
         stmt = await self._stmt_metrics(
             [
                 self.column_date,
@@ -136,4 +136,4 @@ class TransactionRepository(BaseRepository):
         date_c = func.date(self.cte_filtered_transactions.payment_date)
         stmt = stmt.group_by(date_c).order_by(date_c)
         result = await self._session.execute(stmt)
-        return result.mappings().all()
+        return list(result.mappings().all())
