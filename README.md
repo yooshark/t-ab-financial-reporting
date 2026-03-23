@@ -97,14 +97,14 @@ uv run coverage report
 
 ```bash
 # View logs
-docker-compose logs -f api
+docker compose logs -f api
 
 # Stop all services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (clean database)
-docker-compose down -v
+docker compose down -v
 
 # Rebuild specific service
-docker-compose build api
+docker compose build api
 ```
