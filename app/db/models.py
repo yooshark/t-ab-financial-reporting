@@ -1,7 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import func, Enum as SQLEnum, Numeric, ForeignKey, String
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, Numeric, String, func
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 

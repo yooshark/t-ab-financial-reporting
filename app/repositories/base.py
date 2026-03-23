@@ -1,6 +1,6 @@
-from typing import TypeVar, Any
+from typing import Any, TypeVar
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +15,7 @@ class BaseRepository[TModel]:
         self.model = model
 
     async def count(self) -> int:
-        stmt = select(func.count(self.model.id))
+        stmt = select(func.count(self.model.id))  # type: ignore[attr-defined]
         result = await self._session.execute(stmt)
         return result.scalar_one()
 

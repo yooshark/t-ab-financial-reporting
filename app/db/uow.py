@@ -1,9 +1,9 @@
-from typing import Self, TypeVar, Any
+from typing import Any, Self, TypeVar
 
 from sqlalchemy.ext.asyncio import (
+    AsyncSession,
     AsyncSessionTransaction,
     async_sessionmaker,
-    AsyncSession,
 )
 
 from app.repositories.transaction_repo import TransactionRepository

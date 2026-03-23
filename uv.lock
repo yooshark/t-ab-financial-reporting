@@ -821,7 +821,6 @@ dependencies = [
     { name = "gunicorn" },
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-settings" },
-    { name = "uvicorn" },
     { name = "uvicorn-worker" },
 ]
 
@@ -843,7 +842,6 @@ requires-dist = [
     { name = "gunicorn", specifier = ">=25.1.0" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.13.1" },
-    { name = "uvicorn", specifier = ">=0.42.0" },
     { name = "uvicorn-worker", specifier = ">=0.4.0" },
 ]
 

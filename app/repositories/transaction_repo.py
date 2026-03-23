@@ -1,9 +1,10 @@
+from collections.abc import Callable
 from datetime import date
 from decimal import Decimal
 from functools import cached_property
-from typing import Callable, Any
+from typing import Any
 
-from sqlalchemy import select, func, ColumnElement, Select
+from sqlalchemy import ColumnElement, RowMapping, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -33,9 +34,7 @@ class TransactionRepository(BaseRepository):
         self.params = report_params
 
     async def _stmt_metrics(self, methods: list[Callable]) -> Select[Any]:
-        return select(*await self.build_columns(methods)).select_from(
-            self.cte_filtered_transactions
-        )
+        return select(*await self.build_columns(methods)).select_from(self.cte_filtered_transactions)
 
     @cached_property
     def cte_filtered_transactions(self) -> type[Transaction]:
@@ -103,9 +102,7 @@ class TransactionRepository(BaseRepository):
     async def column_total(self) -> ColumnElement[Decimal]:
         return (
             func.sum(self.cte_filtered_transactions.amount)
-            .filter(
-                self.cte_filtered_transactions.status == TransactionStatus.SUCCESSFUL
-            )
+            .filter(self.cte_filtered_transactions.status == TransactionStatus.SUCCESSFUL)
             .label("amount_total")
         )
 
@@ -116,14 +113,12 @@ class TransactionRepository(BaseRepository):
         return func.date(self.cte_filtered_transactions.payment_date).label("date")
 
     async def get_base_metrics(self) -> dict[str, Any]:
-        stmt = await self._stmt_metrics(
-            [self.column_total, self.column_avg, self.column_min, self.column_max]
-        )
+        stmt = await self._stmt_metrics([self.column_total, self.column_avg, self.column_min, self.column_max])
 
         result = await self._session.execute(stmt)
         return dict(result.mappings().all()[0])
 
-    async def get_daily_metrics(self) -> list[dict[str, Any]]:
+    async def get_daily_metrics(self) -> list[RowMapping]:
         stmt = await self._stmt_metrics(
             [
                 self.column_date,
@@ -136,4 +131,4 @@ class TransactionRepository(BaseRepository):
         date_c = func.date(self.cte_filtered_transactions.payment_date)
         stmt = stmt.group_by(date_c).order_by(date_c)
         result = await self._session.execute(stmt)
-        return result.mappings().all()
+        return list(result.mappings().all())
