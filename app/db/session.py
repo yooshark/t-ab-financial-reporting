@@ -1,10 +1,8 @@
 import logging
-from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from app.core.config import settings
-from app.db.uow import SaSessionUnitOfWork
 
 logger = logging.getLogger("app")
 
@@ -21,17 +19,3 @@ sessionmaker = async_sessionmaker(
     autoflush=False,
     expire_on_commit=False,
 )
-
-
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with sessionmaker() as session:
-        yield session
-
-
-async def get_uow(
-    sessionmaker: async_sessionmaker[AsyncSession],
-) -> AsyncGenerator[SaSessionUnitOfWork, None]:
-    uow = SaSessionUnitOfWork(sessionmaker)
-
-    async with uow:
-        yield uow

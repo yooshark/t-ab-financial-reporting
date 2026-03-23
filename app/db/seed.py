@@ -58,7 +58,7 @@ async def seed_db(uow: SaSessionUnitOfWork) -> None:
         batch.append(
             {
                 "user_id": random.choice(user_ids),
-                "amount": Decimal(random.randint(100, 100000)),
+                "amount": Decimal(random.randint(1, 1000)),
                 "status": statuses[i % 2],
                 "type": types[(i // 2) % 2],
                 "payment_date": await random_date(),
@@ -67,12 +67,12 @@ async def seed_db(uow: SaSessionUnitOfWork) -> None:
 
         if len(batch) == settings.seed.BATCH:
             async with uow:
-                await uow.transactions_repo.bulk_insert(batch)
+                await uow.transaction_repo.bulk_insert(batch)
                 batch.clear()
 
     if batch:
         async with uow:
-            await uow.transactions_repo.bulk_insert(batch)
+            await uow.transaction_repo.bulk_insert(batch)
 
 
 async def run_seed() -> None:
