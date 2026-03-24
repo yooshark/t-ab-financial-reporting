@@ -1,12 +1,9 @@
 from collections.abc import Callable
-from datetime import date
-from decimal import Decimal
 from functools import cached_property
 from typing import Any
 
 from sqlalchemy import ColumnElement, RowMapping, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased
 
 from app.core.enums import TransactionStatus
 from app.db.models import Transaction
@@ -24,111 +21,91 @@ class TransactionRepository(BaseRepository):
     async def build_columns(methods: list[Callable]) -> list[ColumnElement[Any]]:
         columns = []
         for method in methods:
-            column = await method()
-            if column is None:
-                continue
-            columns.append(column)
+            col = await method()
+            if col is not None:
+                columns.append(col)
         return columns
 
     async def set_params(self, report_params: ReportQueryParams) -> None:
         self.params = report_params
 
-    async def _stmt_metrics(self, methods: list[Callable]) -> Select[Any]:
-        return select(*await self.build_columns(methods)).select_from(self.cte_filtered_transactions)
-
-    @cached_property
-    def cte_filtered_transactions(self) -> type[Transaction]:
+    def _base_stmt(self) -> Select:
         stmt = select(Transaction).where(
             Transaction.payment_date >= self.params.start_date,
             Transaction.payment_date <= self.params.end_date,
         )
-        if self.params.tr_status != "all":
-            stmt = stmt.where(Transaction.status == self.params.tr_status)
+
         if self.params.tr_type != "all":
             stmt = stmt.where(Transaction.type == self.params.tr_type)
-        cte = stmt.cte("filtered_transactions").prefix_with("MATERIALIZED")
-        return aliased(Transaction, cte)
 
-    def daily_shift(self, agg_func: Callable[[Any], Any]) -> ColumnElement[Decimal]:
-        return (
-            100
-            * (
-                agg_func(self.cte_filtered_transactions.amount)
-                - func.lag(agg_func(self.cte_filtered_transactions.amount)).over(
-                    order_by=func.date(self.cte_filtered_transactions.payment_date)
-                )
-            )
-            / func.lag(agg_func(self.cte_filtered_transactions.amount)).over(
-                order_by=func.date(self.cte_filtered_transactions.payment_date)
-            )
-        )
+        return stmt
 
-    async def column_avg(self) -> ColumnElement[Decimal] | None:
+    @cached_property
+    def base_transactions(self):
+        return self._base_stmt().where(Transaction.status == TransactionStatus.SUCCESSFUL).subquery()
+
+    @cached_property
+    def filtered_transactions(self):
+        stmt = self._base_stmt()
+
+        if self.params.tr_status != "all":
+            stmt = stmt.where(Transaction.status == self.params.tr_status)
+
+        return stmt.subquery()
+
+    async def _stmt_metrics(self, methods: list[Callable]) -> Select[Any]:
+        return select(*await self.build_columns(methods)).select_from(self.base_transactions)
+
+    async def column_total(self):
+        return func.sum(self.base_transactions.c.amount).label("amount_total")
+
+    async def column_avg(self):
         if not self.params.include_avg:
             return None
+        return func.avg(self.base_transactions.c.amount).label("amount_avg")
 
-        return func.avg(self.cte_filtered_transactions.amount).label("amount_avg")
-
-    async def column_avg_daily_shift(self) -> ColumnElement[Decimal] | None:
-        if not self.params.include_avg:
-            return None
-
-        return self.daily_shift(func.avg).label("amount_avg_daily_shift")
-
-    async def column_min(self) -> ColumnElement[Decimal] | None:
+    async def column_min(self):
         if not self.params.include_min:
             return None
+        return func.min(self.base_transactions.c.amount).label("amount_min")
 
-        return func.min(self.cte_filtered_transactions.amount).label("amount_min")
-
-    async def column_min_daily_shift(self) -> ColumnElement[Decimal] | None:
-        if not self.params.include_min:
-            return None
-
-        return self.daily_shift(func.min).label("amount_min_daily_shift")
-
-    async def column_max(self) -> ColumnElement[Decimal] | None:
+    async def column_max(self):
         if not self.params.include_max:
             return None
-
-        return func.max(self.cte_filtered_transactions.amount).label("amount_max")
-
-    async def column_max_daily_shift(self) -> ColumnElement[Decimal] | None:
-        if not self.params.include_max:
-            return None
-
-        return self.daily_shift(func.max).label("amount_max_daily_shift")
-
-    async def column_total(self) -> ColumnElement[Decimal]:
-        return (
-            func.sum(self.cte_filtered_transactions.amount)
-            .filter(self.cte_filtered_transactions.status == TransactionStatus.SUCCESSFUL)
-            .label("amount_total")
-        )
-
-    async def column_total_daily_shift(self) -> ColumnElement[Decimal]:
-        return self.daily_shift(func.sum).label("amount_total_daily_shift")
-
-    async def column_date(self) -> ColumnElement[date]:
-        return func.date(self.cte_filtered_transactions.payment_date).label("date")
+        return func.max(self.base_transactions.c.amount).label("amount_max")
 
     async def get_base_metrics(self) -> dict[str, Any]:
         stmt = await self._stmt_metrics([self.column_total, self.column_avg, self.column_min, self.column_max])
-
         result = await self._session.execute(stmt)
-        return dict(result.mappings().all()[0])
+        return dict(result.mappings().one())
+
+    def _daily_aggregated_subquery(self):
+        return (
+            select(
+                func.date(self.filtered_transactions.c.payment_date).label("date"),
+                func.sum(self.filtered_transactions.c.amount).label("daily_total"),
+            )
+            .group_by(func.date(self.filtered_transactions.c.payment_date))
+            .subquery()
+        )
+
+    def _daily_stmt(self) -> Select:
+        subq = self._daily_aggregated_subquery()
+
+        return select(
+            subq.c.date,
+            subq.c.daily_total,
+            (
+                100
+                * (subq.c.daily_total - func.lag(subq.c.daily_total).over(order_by=subq.c.date))
+                / func.lag(subq.c.daily_total).over(order_by=subq.c.date)
+            ).label("change_daily_shift"),
+        ).order_by(subq.c.date)
 
     async def get_daily_metrics(self) -> list[RowMapping]:
-        stmt = await self._stmt_metrics(
-            [
-                self.column_date,
-                self.column_total_daily_shift,
-                self.column_avg_daily_shift,
-                self.column_min_daily_shift,
-                self.column_max_daily_shift,
-            ]
-        )
-        date_c = func.date(self.cte_filtered_transactions.payment_date)
-        stmt = stmt.group_by(date_c).order_by(date_c)
+        if not self.params.include_daily_shift:
+            return []
+
+        stmt = self._daily_stmt()
         result = await self._session.execute(stmt)
         return list(result.mappings().all())
