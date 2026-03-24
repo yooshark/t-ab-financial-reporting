@@ -14,6 +14,9 @@ dependencies = [
     "pydantic[email]>=2.12.5",
     "pytest-cov>=7.1.0",
     "uvicorn-worker>=0.4.0",
+    "httpx>=0.27.0",
+    "factory-boy>=3.3.3",
+    "aiosqlite>=0.22.1",
 ]
 
 [tool.uv]
@@ -23,7 +26,6 @@ dev-dependencies = [
     "pytest-asyncio>=1.3.0",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
-    "httpx>=0.27.0",
 ]
 
 [tool.pytest.ini_options]
@@ -42,12 +44,12 @@ output-format = "concise"
 
 [tool.ruff.lint]
 select = [
-    "E", # pycodestyle – ошибки стиля
-    "F", # pyflakes – ошибки синтаксиса
-    "B", # flake8-bugbear – потенциальные баги
-    "SIM", # flake8-simplify – упрощение кода
-    "UP", # pyupgrade – современный синтаксис
-    "I", # isort – сортировка импортов
+    "E", # pycodestyle
+    "F", # pyflakes
+    "B", # flake8-bugbear
+    "SIM", # flake8-simplify
+    "UP", # pyupgrade
+    "I", # isort
 ]
 
 ignore = [

@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 from decimal import Decimal
 
 
-@pytest.mark.asyncio
 async def test_get_all_ids(user_repo, mock_session):
     mock_result = MagicMock()
     mock_scalars = MagicMock()
@@ -17,7 +16,6 @@ async def test_get_all_ids(user_repo, mock_session):
     mock_session.execute.assert_called_once()
 
 
-@pytest.mark.asyncio
 async def test_get_user_transactions_by_ids(user_repo, mock_session):
     mock_result = MagicMock()
     mock_data = [(1, 10, Decimal("1000.00"), Decimal("100.00")), (2, 5, Decimal("500.00"), Decimal("100.00"))]

@@ -1,7 +1,6 @@
-from httpx import AsyncClient, ASGITransport
+from httpx import AsyncClient
 from decimal import Decimal
 
-from app.core.app_factory import app
 from app.core.dependencies import get_report_service
 
 
@@ -20,7 +19,6 @@ async def test_get_report_endpoint(api_client: AsyncClient, mock_report_service,
 
 
 async def test_get_report_by_country_endpoint(api_client: AsyncClient, mock_report_service, override_dependency):
-
     mock_report_service.get_report_by_countries.return_value = [
         {"country": "USA", "count": 10, "total": 1000.0, "avg": 100.0}
     ]

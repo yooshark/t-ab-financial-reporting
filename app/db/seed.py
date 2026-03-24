@@ -19,9 +19,7 @@ fake = Faker()
 async def random_date() -> datetime:
     now = datetime.now()
     start = now - timedelta(days=365 * 2)
-    return start + timedelta(
-        seconds=random.randint(0, int((now - start).total_seconds()))
-    )
+    return start + timedelta(seconds=random.randint(0, int((now - start).total_seconds())))
 
 
 async def seed_db(uow: SaSessionUnitOfWork) -> None:
@@ -68,7 +66,7 @@ async def seed_db(uow: SaSessionUnitOfWork) -> None:
         if len(batch) == settings.seed.BATCH:
             async with uow:
                 await uow.transaction_repo.bulk_insert(batch)
-                batch.clear()
+            batch.clear()
 
     if batch:
         async with uow:

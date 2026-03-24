@@ -2,7 +2,6 @@ from collections.abc import AsyncIterator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-import pytest_asyncio
 from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import StaticPool
@@ -13,7 +12,6 @@ from sqlalchemy.ext.asyncio import (
 
 from app.core.app_factory import app
 from app.core.config import Settings
-from app.db.models import Base
 from app.repositories.transaction_repo import TransactionRepository
 from app.repositories.user_repo import UserRepository
 from app.services.report_service import ReportService
@@ -26,19 +24,6 @@ def app_settings() -> Settings:
     return Settings(
         DEBUG=True,
     )
-
-
-@pytest_asyncio.fixture(scope="session")
-async def init_db() -> AsyncIterator[None]:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
 
 
 @pytest.fixture

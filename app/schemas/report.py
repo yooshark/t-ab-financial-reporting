@@ -23,10 +23,7 @@ class ReportQueryParams(BaseModel):
 
 class DailyData(BaseModel):
     date: date
-    amount_total: Decimal | None = None
-    amount_avg: Decimal | None = None
-    amount_min: Decimal | None = None
-    amount_max: Decimal | None = None
+    change_daily_shift: Decimal | None = None
 
 
 class ReportResponse(BaseModel):

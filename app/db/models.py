@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Numeric, String, func
+from sqlalchemy import ForeignKey, Index, Numeric, String, func
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -82,4 +82,18 @@ class Transaction(Base):
 
     user: Mapped["User"] = relationship(
         back_populates="transactions",
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_transactions_status_type_payment_date",
+            "status",
+            "type",
+            "payment_date",
+        ),
+        Index(
+            "ix_transactions_successful_payment_date",
+            "payment_date",
+            postgresql_where=(status == TransactionStatus.SUCCESSFUL),
+        ),
     )

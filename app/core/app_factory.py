@@ -9,6 +9,8 @@ from starlette.responses import JSONResponse
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.logs import configure_logging
+from app.db.session import engine
 
 logger = logging.getLogger("app")
 
@@ -17,23 +19,34 @@ logger = logging.getLogger("app")
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     logger.info("Application is starting...")
     yield
+    logger.debug("Disposing async engine...")
+    await engine.dispose()
+    logger.debug("Engine is disposed.")
     logger.info("Application has stopped")
 
 
-app = FastAPI(
-    lifespan=lifespan,
-    docs_url="/api/docs" if settings.DEBUG else None,
-)
+def create_app() -> FastAPI:
+    configure_logging()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOW_ORIGINS,
-    allow_origin_regex=settings.ALLOW_ORIGIN_REGEX,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-app.include_router(api_router)
+    app = FastAPI(
+        lifespan=lifespan,
+        docs_url="/api/docs" if settings.DEBUG else None,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOW_ORIGINS,
+        allow_origin_regex=settings.ALLOW_ORIGIN_REGEX,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.include_router(api_router)
+
+    return app
+
+
+app = create_app()
 
 
 @app.exception_handler(HTTPException)

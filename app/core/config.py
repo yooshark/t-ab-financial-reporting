@@ -4,7 +4,18 @@ from pathlib import Path
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.enums import LoggingLevel
+
 ENV_FILE = Path.cwd().parent / ".env"
+
+
+class LoggingSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE,
+        env_prefix="LOGGING_",
+        extra="ignore",
+    )
+    level: LoggingLevel = LoggingLevel.INFO
 
 
 class SeedSettings(BaseSettings):
@@ -68,6 +79,7 @@ class Settings(BaseSettings):
 
     db: DatabaseSettings = DatabaseSettings()
     seed: SeedSettings = SeedSettings()
+    logs: LoggingSettings = LoggingSettings()
 
 
 @lru_cache

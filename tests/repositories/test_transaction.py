@@ -19,7 +19,11 @@ async def test_get_base_metrics_positive(transaction_repo, mock_session):
 
     mock_result = MagicMock()
     mock_mapping = MagicMock()
-    mock_mapping.all.return_value = [{"amount_total": Decimal("100.00"), "amount_avg": Decimal("50.00")}]
+    mock_mapping.one.return_value = {
+        "amount_total": Decimal("100.00"),
+        "amount_avg": Decimal("50.00"),
+    }
+
     mock_result.mappings.return_value = mock_mapping
     mock_session.execute.return_value = mock_result
 
@@ -36,7 +40,7 @@ async def test_get_daily_metrics_positive(transaction_repo, mock_session):
 
     mock_result = MagicMock()
     mock_mapping = MagicMock()
-    mock_data = [{"date": date(2024, 1, 1), "amount_total_daily_shift": Decimal("10.00")}]
+    mock_data = [{"date": date(2024, 1, 1), "change_daily_shift": Decimal("10.00")}]
     mock_mapping.all.return_value = mock_data
     mock_result.mappings.return_value = mock_mapping
     mock_session.execute.return_value = mock_result
@@ -64,7 +68,7 @@ async def test_get_base_metrics_empty_db(transaction_repo, mock_session):
 
     mock_result = MagicMock()
     mock_mapping = MagicMock()
-    mock_mapping.all.return_value = [{"amount_total": None, "amount_avg": None}]
+    mock_mapping.one.return_value = {"amount_total": None, "amount_avg": None}
     mock_result.mappings.return_value = mock_mapping
     mock_session.execute.return_value = mock_result
 
