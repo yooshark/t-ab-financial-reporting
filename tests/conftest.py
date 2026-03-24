@@ -16,8 +16,6 @@ from app.repositories.transaction_repo import TransactionRepository
 from app.repositories.user_repo import UserRepository
 from app.services.report_service import ReportService
 
-engine: AsyncEngine = create_async_engine("postgresql+asyncpg:///:memory:", echo=False, poolclass=StaticPool)
-
 
 @pytest.fixture
 def app_settings() -> Settings:
