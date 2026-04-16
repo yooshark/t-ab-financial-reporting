@@ -22,7 +22,7 @@ async def test_get_user_transactions_by_ids(user_repo, mock_session):
     mock_result.all.return_value = mock_data
     mock_session.execute.return_value = mock_result
 
-    result = await user_repo.get_user_transactions_by_ids([1, 2])
+    result = await user_repo.get_user_transactions_by_external_ids([1, 2])
 
     assert result == mock_data
     mock_session.execute.assert_called_once()

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 
@@ -15,16 +15,16 @@ router = APIRouter(
 
 @router.get("/", response_model=ReportResponse)
 async def get_report(
-    params: ReportQueryParams = Depends(),
-    service: ReportService = Depends(get_report_service),
+    params: Annotated[ReportQueryParams, Depends()],
+    service: Annotated[ReportService, Depends(get_report_service)],
 ) -> dict[str, Any]:
     return await service.get_report(params)
 
 
 @router.get("/by-country", response_model=list[ReportByCountryItem])
 async def get_report_by_country(
+    service: Annotated[ReportService, Depends(get_report_service)],
     sort_by: MetricSortByCountry | None = None,
     top_n: int | None = None,
-    service: ReportService = Depends(get_report_service),
 ) -> list[dict[str, Any]]:
     return await service.get_report_by_countries(sort_by, top_n)

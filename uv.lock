@@ -1100,7 +1100,6 @@ dependencies = [
     { name = "pandas" },
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-settings" },
-    { name = "pytest-cov" },
     { name = "uvicorn-worker" },
 ]
 
@@ -1110,6 +1109,7 @@ dev = [
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
     { name = "ruff" },
 ]
 
@@ -1124,7 +1124,6 @@ requires-dist = [
     { name = "pandas", specifier = ">=3.0.1" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.13.1" },
-    { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "uvicorn-worker", specifier = ">=0.4.0" },
 ]
 
@@ -1134,6 +1133,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=1.3.0" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "ruff", specifier = ">=0.15.6" },
 ]
 
