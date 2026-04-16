@@ -11,7 +11,7 @@ from app.db.models import (
     TransactionType,
 )
 from app.db.session import sessionmaker
-from app.db.uow import SaSessionUnitOfWork
+from app.db.transaction_manager import TransactionManager
 
 fake = Faker()
 
@@ -19,12 +19,12 @@ fake = Faker()
 async def random_date() -> datetime:
     now = datetime.now()
     start = now - timedelta(days=365 * 2)
-    return start + timedelta(seconds=random.randint(0, int((now - start).total_seconds())))
+    return start + timedelta(seconds=random.randint(0, int((now - start).total_seconds())))  # noqa: S311
 
 
-async def seed_db(uow: SaSessionUnitOfWork) -> None:
-    async with uow:
-        user_count = await uow.user_repo.count()
+async def seed_db(tr_manager: TransactionManager) -> None:
+    async with tr_manager:
+        user_count = await tr_manager.user_repo.count()
 
     if user_count > 0:
         return
@@ -38,14 +38,15 @@ async def seed_db(uow: SaSessionUnitOfWork) -> None:
                 start_date="-2y",
                 end_date="now",
             ),
+            "external_id": external_id,
         }
-        for _ in range(settings.seed.USERS_COUNT)
+        for external_id in range(1, settings.seed.USERS_COUNT + 1)
     ]
-    async with uow:
-        await uow.user_repo.bulk_insert(users)
+    async with tr_manager:
+        await tr_manager.user_repo.bulk_insert(users)
 
-    async with uow:
-        user_ids = await uow.user_repo.get_all_ids()
+    async with tr_manager:
+        user_ids = await tr_manager.user_repo.get_all_ids()
 
     statuses = list(TransactionStatus)
     types = list(TransactionType)
@@ -55,27 +56,27 @@ async def seed_db(uow: SaSessionUnitOfWork) -> None:
     for i in range(settings.seed.TRANSACTIONS_COUNT):
         batch.append(
             {
-                "user_id": random.choice(user_ids),
-                "amount": Decimal(random.randint(1, 1000)),
+                "user_id": random.choice(user_ids),  # noqa: S311
+                "amount": Decimal(random.randint(1, 1000)),  # noqa: S311
                 "status": statuses[i % 2],
                 "type": types[(i // 2) % 2],
                 "payment_date": await random_date(),
-            }
+            },
         )
 
         if len(batch) == settings.seed.BATCH:
-            async with uow:
-                await uow.transaction_repo.bulk_insert(batch)
-            batch.clear()
+            async with tr_manager:
+                await tr_manager.transaction_repo.bulk_insert(batch)
+                batch.clear()
 
     if batch:
-        async with uow:
-            await uow.transaction_repo.bulk_insert(batch)
+        async with tr_manager:
+            await tr_manager.transaction_repo.bulk_insert(batch)
 
 
 async def run_seed() -> None:
-    uow = SaSessionUnitOfWork(sessionmaker)
-    await seed_db(uow)
+    tr_manager = TransactionManager(sessionmaker)
+    await seed_db(tr_manager)
 
 
 if __name__ == "__main__":

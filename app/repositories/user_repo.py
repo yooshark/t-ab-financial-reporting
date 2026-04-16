@@ -1,4 +1,6 @@
-from sqlalchemy import func, select
+from collections.abc import Sequence
+
+from sqlalchemy import RowMapping, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Transaction, User
@@ -14,17 +16,17 @@ class UserRepository(BaseRepository):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_user_transactions_by_ids(self, user_ids: list[int]):
+    async def get_user_transactions_by_external_ids(self, user_ids: list[int]) -> Sequence[RowMapping]:
         stmt = (
             select(
-                self.model.id,
+                self.model.external_id,
                 func.count(Transaction.id).label("count"),
                 func.sum(Transaction.amount).label("total"),
                 func.avg(Transaction.amount).label("avg"),
             )
             .join(self.model.transactions)
-            .where(self.model.id.in_(user_ids))
+            .where(self.model.external_id.in_(user_ids))
             .group_by(self.model.id)
         )
         result = await self._session.execute(stmt)
-        return result.all()
+        return result.mappings().all()

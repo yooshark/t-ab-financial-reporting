@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncIterator
 from unittest.mock import AsyncMock, MagicMock
 
@@ -30,13 +31,13 @@ def mock_session():
 
 
 @pytest.fixture
-def mock_uow():
-    uow = MagicMock()
-    uow.transaction_repo = AsyncMock()
-    uow.user_repo = AsyncMock()
-    uow.__aenter__.return_value = uow
-    uow.__aexit__.return_value = None
-    return uow
+def mock_tr_manager():
+    tr_manager = MagicMock()
+    tr_manager.transaction_repo = AsyncMock()
+    tr_manager.user_repo = AsyncMock()
+    tr_manager.__aenter__.return_value = tr_manager
+    tr_manager.__aexit__.return_value = None
+    return tr_manager
 
 
 @pytest.fixture
@@ -50,13 +51,8 @@ def transaction_repo(mock_session):
 
 
 @pytest.fixture
-def mock_report_service():
-    return AsyncMock()
-
-
-@pytest.fixture
-def report_service(mock_uow):
-    return ReportService(mock_uow)
+def report_service(mock_tr_manager):
+    return ReportService(mock_tr_manager)
 
 
 @pytest.fixture()

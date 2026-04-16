@@ -42,6 +42,7 @@ class User(Base):
     transactions: Mapped[list["Transaction"]] = relationship(
         back_populates="user",
     )
+    external_id: Mapped[int]
 
 
 class Transaction(Base):
