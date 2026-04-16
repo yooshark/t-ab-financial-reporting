@@ -55,6 +55,7 @@ select = [
     "ASYNC",
     "FAST",
     "COM",
+    "T20",
 ]
 
 ignore = [

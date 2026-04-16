@@ -6,8 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
 
-print(ENV_FILE)
-
 
 class SeedSettings(BaseSettings):
     model_config = SettingsConfigDict(
