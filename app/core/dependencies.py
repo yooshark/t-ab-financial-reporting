@@ -1,15 +1,15 @@
 from fastapi import Depends
 
 from app.db.session import sessionmaker
-from app.db.uow import SaSessionUnitOfWork
+from app.db.transaction_manager import TransactionManager
 from app.services.report_service import ReportService
 
 
-async def get_uow() -> SaSessionUnitOfWork:
-    return SaSessionUnitOfWork(sessionmaker)
+async def get_tr_manager() -> TransactionManager:
+    return TransactionManager(sessionmaker)
 
 
 async def get_report_service(
-    uow: SaSessionUnitOfWork = Depends(get_uow),
+    tr_manager: TransactionManager = Depends(get_tr_manager),
 ) -> ReportService:
-    return ReportService(uow)
+    return ReportService(tr_manager)

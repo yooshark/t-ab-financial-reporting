@@ -1,21 +1,10 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import PostgresDsn
+from pydantic import Field, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.core.enums import LoggingLevel
-
-ENV_FILE = Path.cwd().parent / ".env"
-
-
-class LoggingSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=ENV_FILE,
-        env_prefix="LOGGING_",
-        extra="ignore",
-    )
-    level: LoggingLevel = LoggingLevel.INFO
+ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
 
 
 class SeedSettings(BaseSettings):
@@ -38,7 +27,7 @@ class DatabaseSettings(BaseSettings):
         extra="ignore",
     )
     USER: str = "postgres"
-    PASSWORD: str = "postgres"
+    PASSWORD: str = Field(default=...)
     NAME: str = "ab-financial-reporting"
     HOST: str = "localhost"
     PORT: int = 5432
@@ -79,7 +68,6 @@ class Settings(BaseSettings):
 
     db: DatabaseSettings = DatabaseSettings()
     seed: SeedSettings = SeedSettings()
-    logs: LoggingSettings = LoggingSettings()
 
 
 @lru_cache

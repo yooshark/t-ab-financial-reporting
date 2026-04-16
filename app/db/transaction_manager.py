@@ -12,7 +12,7 @@ from app.repositories.user_repo import UserRepository
 TExc = TypeVar("TExc", bound=BaseException)
 
 
-class SaSessionUnitOfWork:
+class TransactionManager:
     session: AsyncSession
     session_factory: async_sessionmaker[AsyncSession]
     transaction: AsyncSessionTransaction
@@ -29,9 +29,7 @@ class SaSessionUnitOfWork:
         self.transaction: AsyncSessionTransaction = await self.session.begin()
         return self
 
-    async def __aexit__(
-        self, exc_type: type[TExc] | None, exc: TExc | None, traceback: Any | None
-    ) -> None:
+    async def __aexit__(self, exc_type: type[TExc] | None, exc: TExc | None, traceback: Any | None) -> None:
         if exc_type is None:
             await self.commit()
         else:
